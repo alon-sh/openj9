@@ -696,6 +696,24 @@ J9::AheadOfTimeCompile::initializeCommonAOTRelocationHeader(TR::IteratedExternal
          }
          break;
 
+      case TR_ValidateSystemClassByName:
+         {
+         TR_RelocationRecordValidateSystemClassByName *scmRecord = reinterpret_cast<TR_RelocationRecordValidateSystemClassByName *>(reloRecord);
+
+         TR::SystemClassByNameRecord *svmRecord = reinterpret_cast<TR::SystemClassByNameRecord *>(relocation->getTargetAddress());
+
+         TR_OpaqueClassBlock *classToValidate = svmRecord->_class;
+         void *classChainForClassToValidate = svmRecord->_classChain;
+
+         // Store class chain to get name of class. Checking the class chain for
+         // this record eliminates the need for a separate class chain validation.
+         uintptr_t classChainOffsetInSharedCache = self()->offsetInSharedCacheFromPointer(sharedCache, classChainForClassToValidate);
+
+         scmRecord->setSystemClassID(reloTarget, symValManager->getIDFromSymbol(classToValidate));
+         scmRecord->setClassChainOffset(reloTarget, classChainOffsetInSharedCache);
+         }
+         break;
+
       default:
          return cursor;
       }
@@ -1138,6 +1156,20 @@ J9::AheadOfTimeCompile::dumpRelocationHeaderData(uint8_t *cursor, bool isVerbose
                                      cicRecord->objectTypeIsFixed(reloTarget) ? "true" : "false",
                                      cicRecord->castTypeIsFixed(reloTarget) ? "true" : "false",
                                      cicRecord->isInstanceOf(reloTarget) ? "true" : "false");
+            }
+         }
+         break;
+
+      case TR_ValidateSystemClassByName:
+         {
+         TR_RelocationRecordValidateSystemClassByName *scmRecord = reinterpret_cast<TR_RelocationRecordValidateSystemClassByName *>(reloRecord);
+
+         self()->traceRelocationOffsets(cursor, offsetSize, endOfCurrentRecord, orderedPair);
+         if (isVerbose)
+            {
+            traceMsg(self()->comp(), "\n Validate System Class By Name: systemClassID=%d classChainOffsetInSCC=%p ",
+                     (uint32_t)scmRecord->systemClassID(reloTarget),
+                     (void *)scmRecord->classChainOffset(reloTarget));
             }
          }
          break;
@@ -1622,25 +1654,6 @@ J9::AheadOfTimeCompile::dumpRelocationData()
                                    *(int32_t *)ep1, *(int32_t *)ep2, *(UDATA *)ep3, *(int32_t *)ep4, *(int32_t *)ep5);
                   }
                }
-            break;
-
-         case TR_ValidateSystemClassByName:
-            {
-            cursor++;
-            if (is64BitTarget)
-               cursor += 4;     // padding
-            cursor -= sizeof(TR_RelocationRecordBinaryTemplate);
-            TR_RelocationRecordValidateSystemClassByNameBinaryTemplate *binaryTemplate =
-                  reinterpret_cast<TR_RelocationRecordValidateSystemClassByNameBinaryTemplate *>(cursor);
-            if (isVerbose)
-               {
-               traceMsg(self()->comp(), "\n Validate System Class By Name: systemClassID=%d classChainOffsetInSCC=%p ",
-                        (uint32_t)binaryTemplate->_systemClassID,
-                        binaryTemplate->_classChainOffsetInSCC);
-               }
-            cursor += sizeof(TR_RelocationRecordValidateSystemClassByNameBinaryTemplate);
-            self()->traceRelocationOffsets(cursor, offsetSize, endOfCurrentRecord, orderedPair);
-            }
             break;
 
          case TR_ValidateClassFromITableIndexCP:
