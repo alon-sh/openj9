@@ -55,7 +55,7 @@ UDATA initializeVMThreading(J9JavaVM *vm)
 		omrthread_monitor_init_with_name(&vm->statisticsMutex, 0, "VM Statistics List Mutex") ||
 		omrthread_monitor_init_with_name(&vm->fieldIndexMutex, 0, "Field Index Hashtable Mutex") ||
 		omrthread_monitor_init_with_name(&vm->jniCriticalLock, 0, "JNI critical region mutex") ||
-
+		omrthread_monitor_init_with_name(&vm->jniCryptoLibLock, 0, "JNI Cryptography mutex") ||
 #ifdef J9VM_THR_PREEMPTIVE
 		omrthread_monitor_init_with_name(&vm->classLoaderModuleAndLocationMutex, 0, "VM class loader modules") ||
 		omrthread_monitor_init_with_name(&vm->classLoaderBlocksMutex, 0, "VM class loader blocks") ||

@@ -719,6 +719,14 @@ freeJavaVM(J9JavaVM * vm)
 		vm->jniGlobalReferences = NULL;
 	}
 
+#if !defined(J9ZOS390)
+	if (NULL != vm->jniCryptoFunctions) {
+		if (vm->jniCryptoLibrary) {
+			j9sl_close_shared_library(vm->jniCryptoLibrary);
+		}
+	}
+#endif /* !defined(J9ZOS390) */
+
 	if (NULL != vm->dllLoadTable) {
 		J9VMDllLoadInfo *traceLoadInfo = NULL;
 

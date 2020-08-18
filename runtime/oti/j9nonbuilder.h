@@ -5171,6 +5171,9 @@ typedef struct J9JavaVM {
 	struct J9ROMFieldShape* hiddenFinalizeLinkFieldShape;
 	UDATA modulePointerOffset;
 	omrthread_monitor_t jniCriticalLock;
+	omrthread_monitor_t jniCryptoLibLock;
+        void* jniCryptoFunctions;
+        UDATA jniCryptoLibrary;
 	UDATA jniCriticalResponseCount;
 	struct J9SharedInvariantInternTable* sharedInvariantInternTable;
 	struct J9SharedCacheAPI* sharedCacheAPI;
